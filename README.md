@@ -38,7 +38,7 @@ php artisan find:translations
 This command will scan your application for translation keys and identify any that are missing from your language files.
 
 ### Readme generated with [DocuWriter.ai](https://app.docuwriter.ai)
-[![DocuWriter.ai Logo](https://app.docuwriter.ai/img/logo-horizontal.png){width=350}](https://app.docuwriter.ai)
+[![DocuWriter.ai Logo](https://app.docuwriter.ai/img/logo-horizontal.png)](https://app.docuwriter.ai)
 
 
 
