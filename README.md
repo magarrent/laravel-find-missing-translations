@@ -1,84 +1,51 @@
-# Find and extract translations from the application
+# Find and extract translations from a Laravel application
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/magarrent/laravel-find-missing-translations.svg?style=flat-square)](https://packagist.org/packages/magarrent/laravel-find-missing-translations)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/magarrent/laravel-find-missing-translations/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/magarrent/laravel-find-missing-translations/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/magarrent/laravel-find-missing-translations/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/magarrent/laravel-find-missing-translations/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/magarrent/laravel-find-missing-translations.svg?style=flat-square)](https://packagist.org/packages/magarrent/laravel-find-missing-translations)
+## Introduction
 
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+Welcome to **magarrent/laravel-find-missing-translations**, a Laravel package designed to help developers find and manage missing translations within their applications. This tool automates the tedious task of identifying untranslated strings and ensuring that all parts of your application support multilingual features. By streamlining the translation process, this package helps maintain consistency and improve user experience across different languages.
 
-## Support us
+## Features
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/laravel-find-missing-translations.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/laravel-find-missing-translations)
+- **Automatic Detection**: Scans your Laravel application to identify missing translations.
+- **Group and String Keys**: Supports both group-based and string-based translation keys.
+- **Customizable Patterns**: Configurable to recognize different translation functions.
+- **Sorting and Exporting**: Automatically sorts and exports translations for better organization.
+- **Exclusion Capabilities**: Ability to exclude specific languages or groups from the search.
 
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
+## Requirements
 
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+- **PHP**: ^8.2
+- **Laravel**: Compatible with Laravel versions 10.0 and 11.0
 
 ## Installation
 
-You can install the package via composer:
+To install the package, you can use Composer. Run the following command in your terminal:
 
 ```bash
 composer require magarrent/laravel-find-missing-translations
 ```
 
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag="laravel-find-missing-translations-migrations"
-php artisan migrate
-```
-
-You can publish the config file with:
-
-```bash
-php artisan vendor:publish --tag="laravel-find-missing-translations-config"
-```
-
-This is the contents of the published config file:
-
-```php
-return [
-];
-```
-
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag="laravel-find-missing-translations-views"
-```
+Once the package is installed, it will automatically register the service provider and facade.
 
 ## Usage
 
-```php
-$laravelFindMissingTranslations = new Magarrent\LaravelFindMissingTranslations();
-echo $laravelFindMissingTranslations->echoPhrase('Hello, Magarrent!');
-```
-
-## Testing
+To use the package, you can execute the following Artisan command to find and extract missing translations:
 
 ```bash
-composer test
+php artisan find:translations
 ```
 
-## Changelog
+This command will scan your application for translation keys and identify any that are missing from your language files.
 
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+### Readme generated with [DocuWriter.ai](https://app.docuwriter.ai)
+[![DocuWriter.ai Logo](https://app.docuwriter.ai/img/logo-horizontal.png){width=350}](https://app.docuwriter.ai)
+
+
 
 ## Contributing
 
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
-
-## Credits
-
-- [Marc Garcia - @magarrent](https://github.com/magarrent)
-- [All Contributors](../../contributors)
+Contributions to this project are welcome. If you encounter issues or have suggestions for improvements, feel free to open an issue or submit a pull request on the [GitHub repository](https://github.com/magarrent/laravel-find-missing-translations).
 
 ## License
 
-The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE.md) file for more information.
