@@ -1,10 +1,11 @@
 <?php
 
-namespace Magarrent\LaravelFindMissingTranslations\Commands;
+namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Symfony\Component\Finder\Finder;
 
-class LaravelFindMissingTranslationsCommand extends Command
+class FindTranslationsCommand extends Command
 {
     protected $signature = 'find:translations';
 
@@ -15,16 +16,8 @@ class LaravelFindMissingTranslationsCommand extends Command
         'exclude_langs' => [],
         'sort_keys' => false,
         'trans_functions' => [
-            'trans',
-            'trans_choice',
-            'Lang::get',
-            'Lang::choice',
-            'Lang::trans',
-            'Lang::transChoice',
-            '@lang',
-            '@choice',
-            '__',
-            '$trans.get',
+            'trans', 'trans_choice', 'Lang::get', 'Lang::choice', 'Lang::trans',
+            'Lang::transChoice', '@lang', '@choice', '__', '$trans.get',
         ],
     ];
 
@@ -39,8 +32,6 @@ class LaravelFindMissingTranslationsCommand extends Command
     public function handle()
     {
         $this->findAndSaveTranslations();
-
-        return self::SUCCESS;
     }
 
     public function findAndSaveTranslations($path = null)
@@ -49,17 +40,20 @@ class LaravelFindMissingTranslationsCommand extends Command
         $groupKeys = [];
         $stringKeys = [];
 
-        $groupPattern = "[^\w|>]" . '(' . implode('|', $this->config['trans_functions']) . ')' . "\(" . "[\'\"]" .
-            '([a-zA-Z0-9_-]+([.][^\1)\ ]+)+)' . "[\'\"]" . "[\),]";
-        $stringPattern = "[^\w](" . implode('|', $this->config['trans_functions']) . ")\(\s*(?P<quote>['\"])" .
-            "(?P<string>(?:\\\k{quote}|(?!\k{quote}).)*)\k{quote}\s*[\),]";
+        $groupPattern = "@lang\(\s*['\"]([a-zA-Z0-9_-]+\.[^'\"\)]+)['\"].*?\)";
+        $stringPattern = "@lang\(\s*(?P<quote>['\"])(?P<string>(?:[^\"']|(?!\k{quote}).)*)\k{quote}\s*\)";
 
         $finder = new Finder;
-        $finder->in($path)->exclude('storage')->exclude('vendor')->exclude('lang')->name('*.php')->name('*.twig')->name('*.vue')->files();
+        $finder->in($path)
+            ->exclude('storage')
+            ->exclude('vendor')
+            ->exclude('lang')
+            ->name(['*.php', '*.twig', '*.vue', '*.blade.php'])
+            ->files();
 
         foreach ($finder as $file) {
             if (preg_match_all("/$groupPattern/siU", $file->getContents(), $matches)) {
-                $groupKeys = array_merge($groupKeys, $matches[2]);
+                $groupKeys = array_merge($groupKeys, $matches[1]);
             }
 
             if (preg_match_all("/$stringPattern/siU", $file->getContents(), $matches)) {
@@ -69,7 +63,6 @@ class LaravelFindMissingTranslationsCommand extends Command
 
         $groupKeys = array_unique($groupKeys);
         $stringKeys = array_unique($stringKeys);
-
 
         $this->saveGroupKeys($groupKeys);
         $this->saveStringKeys($stringKeys);
@@ -184,10 +177,10 @@ class LaravelFindMissingTranslationsCommand extends Command
     protected function getFilePath($locale, $group)
     {
         if ($group === '_json') {
-            return $this->translationsPath . DIRECTORY_SEPARATOR . $locale . '.json';
+            return $this->translationsPath.DIRECTORY_SEPARATOR.$locale.'.json';
         }
 
-        return $this->translationsPath . DIRECTORY_SEPARATOR . $locale . DIRECTORY_SEPARATOR . $group . '.php';
+        return $this->translationsPath.DIRECTORY_SEPARATOR.$locale.DIRECTORY_SEPARATOR.$group.'.php';
     }
 
     protected function loadTranslations($filePath)
@@ -212,7 +205,7 @@ class LaravelFindMissingTranslationsCommand extends Command
         if ($extension === 'json') {
             $content = json_encode($translations, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         } else {
-            $content = "<?php\n\nreturn " . var_export($translations, true) . ";\n";
+            $content = "<?php\n\nreturn ".var_export($translations, true).";\n";
         }
 
         file_put_contents($filePath, $content);
@@ -221,7 +214,7 @@ class LaravelFindMissingTranslationsCommand extends Command
     protected function getAvailableLocales()
     {
         // Scan the lang directory for available locales
-        $directories = array_filter(glob($this->translationsPath . '/*'), 'is_dir');
+        $directories = array_filter(glob($this->translationsPath.'/*'), 'is_dir');
 
         return array_map('basename', $directories);
     }
