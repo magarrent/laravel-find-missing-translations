@@ -49,26 +49,38 @@ class FindTranslationsCommand extends Command
 
         // Multiple patterns to match different translation function calls
         $patterns = [
-            // @lang directive pattern
+            // @lang directive pattern (no parameters)
             "/@lang\(\s*['\"]([^'\"]+)['\"]\s*\)/",
 
-            // __ helper function pattern
+            // @lang directive pattern with parameters
+            "/@lang\(\s*['\"]([^'\"]+)['\"][\s]*,[\s]*\[/",
+
+            // __ helper function pattern (no parameters)
             "/__\(\s*['\"]([^'\"]+)['\"]\s*\)/",
 
             // __ helper function pattern with parameters
-            "/__\(\s*['\"]([^'\"]+)['\"]\s*,/",
+            "/__\(\s*['\"]([^'\"]+)['\"][\s]*,[\s]*\[/",
 
-            // trans helper function pattern
+            // __ helper function pattern with parameters (alternate format)
+            "/__\(\s*['\"]([^'\"]+)['\"][\s]*,[\s]*array\(/",
+
+            // trans helper function pattern (no parameters)
             "/trans\(\s*['\"]([^'\"]+)['\"]\s*\)/",
 
             // trans helper function pattern with parameters
-            "/trans\(\s*['\"]([^'\"]+)['\"]\s*,/",
+            "/trans\(\s*['\"]([^'\"]+)['\"][\s]*,[\s]*\[/",
 
-            // Lang::get pattern
+            // trans helper function pattern with parameters (alternate format)
+            "/trans\(\s*['\"]([^'\"]+)['\"][\s]*,[\s]*array\(/",
+
+            // Lang::get pattern (no parameters)
             "/Lang::get\(\s*['\"]([^'\"]+)['\"]\s*\)/",
 
             // Lang::get pattern with parameters
-            "/Lang::get\(\s*['\"]([^'\"]+)['\"]\s*,/",
+            "/Lang::get\(\s*['\"]([^'\"]+)['\"][\s]*,[\s]*\[/",
+
+            // Lang::get pattern with parameters (alternate format)
+            "/Lang::get\(\s*['\"]([^'\"]+)['\"][\s]*,[\s]*array\(/",
 
             // trans_choice helper function pattern
             "/trans_choice\(\s*['\"]([^'\"]+)['\"]\s*,/",
@@ -79,8 +91,14 @@ class FindTranslationsCommand extends Command
             // Blade component attribute translations - single quotes inside double quotes
             "/:[a-zA-Z0-9_-]+=\"__\(['\"]([^'\"]+)['\"]\)/",
 
+            // Blade component attribute translations with parameters - single quotes inside double quotes
+            "/:[a-zA-Z0-9_-]+=\"__\(['\"]([^'\"]+)['\"][\s]*,[\s]*\[/",
+
             // Blade component attribute translations - single quotes inside single quotes
             "/:[a-zA-Z0-9_-]+='__\(['\"]([^'\"]+)['\"]\)/",
+
+            // Blade component attribute translations with parameters - single quotes inside single quotes
+            "/:[a-zA-Z0-9_-]+='__\(['\"]([^'\"]+)['\"][\s]*,[\s]*\[/",
 
             // Blade component attribute translations - double quotes inside double quotes with escaped quotes
             '/:[a-zA-Z0-9_-]+="__\(\"([^\"]+)\"\)/',
@@ -94,14 +112,22 @@ class FindTranslationsCommand extends Command
             // {{ __('text') }} pattern
             "/\{{\s*__\(['\"]([^'\"]+)['\"]\)\s*}}/",
 
+            // {{ __('text', [...]) }} pattern with parameters
+            "/\{{\s*__\(['\"]([^'\"]+)['\"][\s]*,[\s]*\[/",
+
             // {!! __('text') !!} pattern
             "/\{!!\s*__\(['\"]([^'\"]+)['\"]\)\s*!!}/",
+
+            // {!! __('text', [...]) !!} pattern with parameters
+            "/\{!!\s*__\(['\"]([^'\"]+)['\"][\s]*,[\s]*\[/",
         ];
 
         // Component special patterns that need different handling
         $specialPatterns = [
             // Special handling for x-component with :attribute="__('...')" pattern
             '/<x-[^>]*?(\s+:[a-zA-Z0-9_-]+\s*=\s*"__\([\'"]([^\'"]+)[\'"][^>]*?)>/' => 2,
+            // Special handling for x-component with :attribute="@lang('...')" pattern
+            '/<x-[^>]*?(\s+:[a-zA-Z0-9_-]+\s*=\s*"@lang\([\'"]([^\'"]+)[\'"][^>]*?)>/' => 2,
         ];
 
         $finder = new Finder;
