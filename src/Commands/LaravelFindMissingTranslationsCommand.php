@@ -4,8 +4,8 @@ namespace Magarrent\LaravelFindMissingTranslations\Commands;
 
 use Illuminate\Console\Command;
 use Symfony\Component\Finder\Finder;
-
 class FindTranslationsCommand extends Command
+    
 {
     protected $signature = 'find:translations {--path= : Path to scan for translations} {--detailed : Show more detailed output}';
 
@@ -38,13 +38,6 @@ class FindTranslationsCommand extends Command
 
         $this->info('Scanning for translations in: '.$path);
         $this->findAndSaveTranslations($path);
-
-        // Always try to clean up vendor.json after scanning
-        $vendorJsonPath = $this->translationsPath.DIRECTORY_SEPARATOR.'vendor.json';
-        if (file_exists($vendorJsonPath)) {
-            $this->cleanupVendorJson();
-        }
-
         $this->info('Translation scan completed.');
     }
 
@@ -127,6 +120,9 @@ class FindTranslationsCommand extends Command
 
             // {!! __('text', [...]) !!} pattern with parameters
             "/\{!!\s*__\(['\"]([^'\"]+)['\"][\s]*,[\s]*\[/",
+
+            // Refined pattern for PHP attributes like #[Title(...)] or #[Namespace\Title(...)]
+            "/#\\[[\\w\\\\]*Title\\(\\s*['\"]([^'\"]+)['\"]\\s*\\)/",
         ];
 
         // Component special patterns that need different handling
@@ -273,7 +269,7 @@ class FindTranslationsCommand extends Command
         $newTranslations = 0;
 
         foreach ($locales as $locale) {
-            if (! in_array($locale, $this->config['exclude_langs']) && $locale !== 'vendor') {
+            if (! in_array($locale, $this->config['exclude_langs'])) {
                 $filePath = $this->getFilePath($locale, '_json');
 
                 // Ensure parent directory exists
@@ -364,11 +360,6 @@ class FindTranslationsCommand extends Command
 
     protected function getFilePath($locale, $group)
     {
-        // Never use 'vendor' as the locale for JSON files
-        if ($locale === 'vendor' && $group === '_json') {
-            $locale = 'en'; // Default to English instead
-        }
-
         if ($group === '_json') {
             return $this->translationsPath.DIRECTORY_SEPARATOR.$locale.'.json';
         }
@@ -418,35 +409,10 @@ class FindTranslationsCommand extends Command
 
     protected function getAvailableLocales()
     {
-        $locales = [];
-
-        // Scan the lang directory for available locale directories
+        // Scan the lang directory for available locales
         $directories = array_filter(glob($this->translationsPath.'/*'), 'is_dir');
-        $locales = array_merge($locales, array_map('basename', $directories));
 
-        // Also scan for JSON files (which are locale files themselves)
-        $jsonFiles = glob($this->translationsPath.'/*.json');
-        foreach ($jsonFiles as $file) {
-            $locale = pathinfo($file, PATHINFO_FILENAME);
-            // Skip vendor.json or other special files that aren't locales
-            if ($locale !== 'vendor' && ! in_array($locale, $locales)) {
-                $locales[] = $locale;
-            }
-        }
-
-        // If no locales found, default to 'en'
-        if (empty($locales)) {
-            $locales[] = 'en';
-
-            // Create the default en.json file if it doesn't exist
-            $enJsonPath = $this->translationsPath.DIRECTORY_SEPARATOR.'en.json';
-            if (! file_exists($enJsonPath)) {
-                $this->saveToFile($enJsonPath, []);
-                $this->info('Created default en.json file');
-            }
-        }
-
-        return $locales;
+        return array_map('basename', $directories);
     }
 
     public function exportAllTranslations()
@@ -464,56 +430,6 @@ class FindTranslationsCommand extends Command
 
             // Save back to the file (to ensure correct formatting and sorting)
             $this->saveToFile($path, $translations);
-        }
-    }
-
-    protected function cleanupVendorJson()
-    {
-        $vendorJsonPath = $this->translationsPath.DIRECTORY_SEPARATOR.'vendor.json';
-        $this->info('Checking for vendor.json at: '.$vendorJsonPath);
-
-        if (file_exists($vendorJsonPath)) {
-            $this->info('Found vendor.json file, attempting to process it...');
-
-            // Try to move translations from vendor.json to en.json before deleting
-            $enJsonPath = $this->translationsPath.DIRECTORY_SEPARATOR.'en.json';
-
-            $vendorTranslations = json_decode(file_get_contents($vendorJsonPath), true) ?: [];
-
-            if (! empty($vendorTranslations)) {
-                $this->info('Found '.count($vendorTranslations).' translations in vendor.json');
-
-                // Load existing en translations
-                $enTranslations = [];
-                if (file_exists($enJsonPath)) {
-                    $enTranslations = json_decode(file_get_contents($enJsonPath), true) ?: [];
-                    $this->info('Found '.count($enTranslations).' existing translations in en.json');
-                }
-
-                // Merge translations (vendor translations take priority)
-                $mergedTranslations = array_merge($enTranslations, $vendorTranslations);
-
-                // Save to en.json
-                if (! empty($mergedTranslations)) {
-                    $this->saveToFile($enJsonPath, $mergedTranslations);
-                    $this->info('Moved '.count($vendorTranslations).' translations from vendor.json to en.json');
-                }
-            } else {
-                $this->info('vendor.json file is empty or has invalid JSON');
-            }
-
-            // Now delete the vendor.json file
-            try {
-                if (unlink($vendorJsonPath)) {
-                    $this->info('Successfully removed vendor.json file');
-                } else {
-                    $this->error('Failed to remove vendor.json file');
-                }
-            } catch (\Exception $e) {
-                $this->error('Error removing vendor.json: '.$e->getMessage());
-            }
-        } else {
-            $this->info('vendor.json file not found');
         }
     }
 }
